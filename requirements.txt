@@ -1,6 +1,5 @@
 streamlit
 openai
 pytube
-moviepy
 git+https://github.com/openai/whisper.git
 torch
