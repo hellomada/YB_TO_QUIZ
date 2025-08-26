@@ -3,7 +3,6 @@ import openai
 import tempfile
 import os
 from pytube import YouTube
-from moviepy.editor import AudioFileClip
 import whisper
 
 # ------------------------
@@ -19,20 +18,16 @@ num_qs = st.number_input("How many quiz questions do you want?", min_value=3, ma
 
 if yt_url and openai_api_key:
     if st.button("Generate Quiz"):
-        with st.spinner("Downloading video..."):
+        with st.spinner("Downloading audio..."):
             yt = YouTube(yt_url)
             stream = yt.streams.filter(only_audio=True).first()
             temp_dir = tempfile.mkdtemp()
             audio_path = os.path.join(temp_dir, "audio.mp4")
             stream.download(output_path=temp_dir, filename="audio.mp4")
 
-        with st.spinner("Extracting audio and transcribing..."):
-            audio_clip = AudioFileClip(audio_path)
-            audio_clip.write_audiofile(os.path.join(temp_dir, "audio.wav"))
-            audio_clip.close()
-
-            model = whisper.load_model("base")  # Change to "small"/"medium" if GPU available
-            result = model.transcribe(os.path.join(temp_dir, "audio.wav"))
+        with st.spinner("Transcribing with Whisper..."):
+            model = whisper.load_model("base")  # "small"/"medium" if GPU is available
+            result = model.transcribe(audio_path)
             transcript = result["text"]
 
         st.subheader("📜 Transcript Preview")
@@ -69,4 +64,7 @@ if yt_url and openai_api_key:
         st.subheader("📝 Generated Quiz")
         st.write(quiz)
 
-        st.success("Done! Copy your quiz or download transcript.")
+        # Option to download quiz
+        st.download_button("📥 Download Quiz", quiz, file_name="quiz.txt")
+
+        st.success("Done! Copy or download your quiz & transcript.")
